@@ -2,11 +2,12 @@
 #include <stdio.h>
 #include <gb/console.h>
 #include "Bird.c"
+#include "header.h"
 
 void main()
 {
 	int iteration = 0;
-	set_sprite_data(0, 8, Bird);
+	set_sprite_data(0, 14, Bird);
 	set_sprite_tile(0, 0); //Parameter 1 = number of the tile for reference from other functions. Parameter 2: The number of the tile of the GBTD
   	set_sprite_tile(1, 1);
   	set_sprite_tile(2, 2);
@@ -76,4 +77,9 @@ void jumpBird()
 		yTailBird += 4;
 		yBird += 4;
 	}	
+}
+
+void setPlumb()
+{
+
 }
