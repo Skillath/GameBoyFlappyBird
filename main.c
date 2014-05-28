@@ -51,7 +51,6 @@ void animateBird(int iter)
 			move_sprite(3,heightBirdLow,78);
 			break;
 		default:
-			printf("%d", iter);
 			set_sprite_tile(2,6);
 			move_sprite(2,heightBirdLow,70);
 			set_sprite_tile(3,7);
@@ -63,10 +62,8 @@ void animateBird(int iter)
 void jumpBird()
 {
 	int pad = joypad();
-	if(pad != 0)
-		printf("%d", pad);
-	/*if(pad & J_A)
+	if(pad & J_A)
 	{
 		printf("%d", pad);
-	}*/
+	}
 }
