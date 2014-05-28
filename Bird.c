@@ -43,8 +43,11 @@ unsigned char Bird[] =
   0x78,0x7F,0x07,0x07,0x00,0x00,0x00,0x00
 };
 
-int heightBird = 30;  
-int heightBirdLow = heightBird - 8;  
+int xBird = 30;  
+int xBirdLow = xBird - 8;  
+int yBird = 78;
+int yTailBird = yBird - 8;
+
 
 void animateBird(int iter);
 void jumpBird();

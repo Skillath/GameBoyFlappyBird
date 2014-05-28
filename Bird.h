@@ -9,8 +9,8 @@
   Format               : Gameboy 4 color.
   Compression          : None.
   Counter              : None.
-  Tile size            : 8 x 8
-  Tiles                : 0 to 7
+  Tile size            : 8 x 16
+  Tiles                : 0 to 3
 
   Palette colors       : None.
   SGB Palette          : None.
@@ -27,6 +27,5 @@
 #define BirdBank 0
 /* Start of tile array. */
 extern unsigned char Bird[];
-extern int heightBird, heightBirdLow;
 
 /* End of BIRD.H */
