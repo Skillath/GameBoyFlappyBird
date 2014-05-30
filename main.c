@@ -33,25 +33,26 @@ void main(void)
 	SHOW_SPRITES;
 
 	for(cont = 0; cont < PLUMBS; cont ++)
-		plumb[cont].xPlumb = 152;
+		plumb[cont].xPlumb = 160;
 
 	while (!0) 
 	{		
-		setPlumb(plumb, nPlumb);
+		gotoxy(0, 0);
+		printf("POINTS: %d", points);
+
+		setPlumb(plumb);
 		animateBird(iteration);
 		jumpBird();
-		addPoints();
+		//addPoints();
 
-	
 		m_clock++;
-		if(m_clock == 5)
+		if(m_clock == 20)
 		{
 			m_clock = 0;
 			iteration++;
 			if(iteration >= 4)
 				iteration = 0;
 		}
-
 		time++;
 		if(time == 3000)
 			time = 0;
@@ -93,50 +94,48 @@ void animateBird(int iter)
 
 void jumpBird()
 {
-	int pad = joypad();
+	int vY;
+	if(falling > 0)
+	{
+		int pad = joypad();
 
-	if(pad == J_UP)
-	{
-		int y = yBird;
-		if(y - 4 > 32)
-		{
-			yTailBird -= 4;
-			yBird -= 4;
-		}		
+		if(pad & J_A)
+			falling = -1 * maxTime;
 	}
-	else if(pad == J_DOWN)
+	
+
+	vY = GRAVITY * falling;
+
+	if(yTailBird + vY < 144 && yBird + vY > 32)
 	{
-		int y = yTailBird;
-		if(y + 4 < 144)
-		{
-			yTailBird += 4;
-			yBird += 4;
-		}
+		yTailBird += vY;
+		yBird += vY;
 	}
-	if(pad == J_START)	
-	{
-		waitpad(J_START);
-	}
+	if(m_clock == 6)
+		falling ++;
+	if(falling >= maxTime)		
+			falling = maxTime;
 }
 
-void setPlumb(struct Plumb* plumb, int nPlumb)
+void setPlumb(struct Plumb* plumb)
 {
-	int cont;
-	for(cont = 0; cont < nPlumb; cont ++)
+	int cont = 0;
+
+	if(painted == 0)
 	{
 		if(plumb[cont].xPlumb == 0)
 			plumb[cont].xPlumb = 160;
 		if(plumb[cont].xPlumb == 160)
 			plumb[cont].heightPlumb = randomize();
-		if(plumb[cont].heightPlumb == 160)
+		if(plumb[cont].heightPlumb >= 160)
 			plumb[cont].heightPlumb = 82;
-		else if(plumb[cont].heightPlumb == 0)
+		else if(plumb[cont].heightPlumb <= 0)
 			plumb[cont].heightPlumb = 40;
 		paintRectangle(plumb[cont].heightPlumb);
-
+		painted = 1;
 	}
+	movePlumb(plumb[cont].heightPlumb);
 
-	return;
 }
 
 void addPoints()
@@ -149,38 +148,102 @@ void addPoints()
 //Custom rand function.
 int randomize()
 {
-	gotoxy(0,2);
-	printf("%d\n", positions[time % 10]);
 	return positions[time % 10];
 }
 
 void paintRectangle(int safeZone)
 {
-	/*set_sprite_tile(4, 8);
-	move_sprite(4, 152, 16);*/
 	int i;
 	int cont = 4;
+	if(isFirstTime == 1)
+	{
+		isFirstTime = 0;
+		for(i = 24; i <= safeZone; i += 8)
+		{
+			set_sprite_tile(cont, 8);
+			move_sprite(cont, 160, i);
+			cont ++;
+			set_sprite_tile(cont, 8);
+			move_sprite(cont, 168, i);
+			cont ++;
+		}
+		for(i = safeZone + 32; i <= 160; i += 8)
+		{
+			set_sprite_tile(cont, 8);
+			move_sprite(cont, 160, i);
+			cont ++;
+			set_sprite_tile(cont, 8);
+			move_sprite(cont, 168, i);
+			cont ++;
+		}
+	}
+	else
+	{
+		for(i = 24; i <= safeZone; i += 8)
+		{
+			move_sprite(cont, 160, i);
+			cont ++;
+			move_sprite(cont, 168, i);
+			cont ++;
+		}
+		for(i = safeZone + 32; i <= 160; i += 8)
+		{
+			move_sprite(cont, 160, i);
+			cont ++;
+			move_sprite(cont, 168, i);
+			cont ++;
+		}
+	}
+	
+}
+
+void movePlumb(int safeZone)
+{
+	int i;
+	int cont = 4;
+
+	collision(safeZone);
+
+	leftPlumbSprite -= BIRD_VELOCITY;
+	rightPlumbSprite -= BIRD_VELOCITY;
+	
 	for(i = 24; i <= safeZone; i += 8)
 	{
-		set_sprite_tile(cont, 8);
-		move_sprite(cont, 152, i);
+		move_sprite(cont, leftPlumbSprite, i);
 		cont ++;
-		set_sprite_tile(cont, 8);
-		move_sprite(cont, 160, i);
+		move_sprite(cont, rightPlumbSprite, i);
 		cont ++;
 	}
 	for(i = safeZone + 32; i <= 160; i += 8)
 	{
-		set_sprite_tile(cont, 8);
-		move_sprite(cont, 152, i);
+		move_sprite(cont, leftPlumbSprite, i);
 		cont ++;
-		set_sprite_tile(cont, 8);
-		move_sprite(cont, 160, i);
+		move_sprite(cont, rightPlumbSprite, i);
 		cont ++;
 	}
+
+	if(leftPlumbSprite < 0)
+	{
+		leftPlumbSprite = 160;
+		rightPlumbSprite = 168;
+		painted = 0;
+	}
+
+	
 }
 
-void movePlumb()
+void collision(int safeZone)
 {
-
+	if(xBird == leftPlumbSprite)
+	{
+		if(yBird >= safeZone && yTailBird <= safeZone + 32)
+		{
+			addPoints();
+		}
+		else
+		{
+			gotoxy(4, 8);
+			printf("GAME OVER");
+		}
+	}
 }
