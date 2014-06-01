@@ -22,7 +22,6 @@ void main(void)
 {
 	struct Plumb plumb[PLUMBS];
 	int iteration = 0;
-	int cont = 0;
 	int nPlumb = 1;
 
 	set_sprite_data(0, 9, Bird);
@@ -32,30 +31,37 @@ void main(void)
   	set_sprite_tile(3, 3);
 	SHOW_SPRITES;
 
-	for(cont = 0; cont < PLUMBS; cont ++)
-		plumb[cont].xPlumb = 160;
+	plumb[0].xPlumb = 160;
 
 	while (!0) 
 	{		
-		gotoxy(0, 0);
-		printf("POINTS: %d", points);
-
-		setPlumb(plumb);
-		animateBird(iteration);
-		jumpBird();
-		//addPoints();
-
-		m_clock++;
-		if(m_clock == 20)
+		if(flag != 0)
 		{
-			m_clock = 0;
-			iteration++;
-			if(iteration >= 4)
-				iteration = 0;
+			gotoxy(0, 0);
+			printf("POINTS: %d", points);
+
+			setPlumb(plumb);
+			animateBird(iteration);
+			jumpBird();
+			//addPoints();
+
+			m_clock++;
+			if(m_clock == 20)
+			{
+				m_clock = 0;
+				iteration++;
+				if(iteration >= 4)
+					iteration = 0;
+			}
+			time++;
+			if(time == 3000)
+				time = 0;
 		}
-		time++;
-		if(time == 3000)
-			time = 0;
+		else
+		{
+
+		}
+		
 	}
 }
 
