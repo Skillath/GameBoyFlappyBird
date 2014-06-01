@@ -27,7 +27,7 @@ int isFirstTime = 1;
 
 int xUpperPlumb, xLowerPlumb;
 
-int positions[10] = {72, 80, 160, 32, 64, 112, 132, 40, 152, 96};
+int positions[10] = {72, 80, 124, 32, 64, 112, 132, 40, 46, 96};
 
 struct Plumb
 {
