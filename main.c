@@ -7,7 +7,7 @@ GAMEBOY SPECIFICATIONS:
 - Video RAM: 8 kB internal
 - ROM: On-CPU-Die 256-byte bootstrap; 256 kb, 512 kb, 1 Mb, 2 Mb, 4 Mb and 8 Mb cartridges
 - Sound: 2 pulse wave generators, 1 PCM 4-bit wave sample (64 4-bit samples played in 1×64 bank or 2×32 bank) channel, 1 noise generator, and one audio input from the cartridge.
-- Display: Reflective STN LCD 160 × 144 pixels
+- Display: Reflective STN LCD SCREEN_DIMENSION × 144 pixels
 - Frame Rate: Approx. 59.7 frames per second on a regular Game Boy, 61.1 on a Super Game Boy
 - Vertical Blank Rate: Approx 1.1 ms
 - Screen size: 66 mm (2.6 in) diagonal
@@ -31,38 +31,80 @@ void main(void)
   	set_sprite_tile(3, 3);
 	SHOW_SPRITES;
 
-	plumb[0].xPlumb = 160;
+	plumb[0].xPlumb = SCREEN_DIMENSION;
 
 	while (!0) 
 	{		
-		if(flag != 0)
+		int pad;
+		switch(flag)
 		{
-			gotoxy(0, 0);
-			printf("POINTS: %d", points);
-
-			setPlumb(plumb);
-			animateBird(iteration);
-			jumpBird();
-			//addPoints();
-
-			m_clock++;
-			if(m_clock == 20)
-			{
-				m_clock = 0;
-				iteration++;
-				if(iteration >= 4)
+			case -1:
+				flag = -1;
+				gotoxy(0, 0);
+				printf("POINTS: %d", points);
+				gotoxy(4, 8);
+				printf("FLAPPY BIRD");				
+				
+				pad = joypad();
+				if(pad & J_START)
+				{
+					plumb[0].xPlumb = SCREEN_DIMENSION;
+					init();
+				}	
+			case 0:
+				gotoxy(4, 8);
+				printf("GAME OVER");
+				
+				pad = joypad();
+				if(pad & J_START)
+				{
 					iteration = 0;
-			}
-			time++;
-			if(time == 3000)
-				time = 0;
-		}
-		else
-		{
+					plumb[0].xPlumb = SCREEN_DIMENSION;
+					init();
+				}					
+				break;
+			default:
+				gotoxy(0, 0);
+				printf("POINTS: %d", points);
 
-		}
-		
+				gotoxy(4, 8);
+				printf("           ");
+
+				setPlumb(plumb);
+				animateBird(iteration);
+				jumpBird();
+
+				m_clock++;
+				if(m_clock == 20)
+				{
+					m_clock = 0;
+					iteration++;
+					if(iteration >= 4)
+						iteration = 0;
+				}
+				time++;
+				if(time == 3000)
+					time = 0;
+				break;
+		}	
 	}
+}
+
+void init()
+{
+	xBird 			= 64;  
+	xBirdLow 		= xBird - SPACE_TILE;  
+	yBird 			= 78;
+	yTailBird 		= yBird - SPACE_TILE;
+	points 			= 0;
+	time 			= 0;
+	m_clock 		= 0;
+	falling 		= 0;
+	timeJumping 	= 0;
+	flag 			= 1;
+	leftPlumbSprite = SCREEN_DIMENSION;
+	rightPlumbSprite = SCREEN_DIMENSION + SPACE_TILE;
+	isFirstTime = 1;
 }
 
 void animateBird(int iter)
@@ -104,44 +146,45 @@ void jumpBird()
 	if(falling > 0)
 	{
 		int pad = joypad();
-
 		if(pad & J_A)
-			falling = -1 * maxTime;
+			falling = -2;
 	}
-	
 
 	vY = GRAVITY * falling;
 
-	if(yTailBird + vY < 144 && yBird + vY > 32)
+	if(yTailBird + vY < SCREEN_DIMENSION && yBird + vY > 32)
 	{
 		yTailBird += vY;
 		yBird += vY;
 	}
-	if(m_clock == 6)
+
+	if(yTailBird + SPACE_TILE + vY >= SCREEN_DIMENSION)
+		flag = 0;
+	if(m_clock == 4)
 		falling ++;
-	if(falling >= maxTime)		
-			falling = maxTime;
+	if(falling == 0)
+		falling ++;
+	if(falling >= MAX_FALL_VELOCITY)		
+		falling = MAX_FALL_VELOCITY;
+
 }
 
 void setPlumb(struct Plumb* plumb)
 {
-	int cont = 0;
-
 	if(painted == 0)
 	{
-		if(plumb[cont].xPlumb == 0)
-			plumb[cont].xPlumb = 160;
-		if(plumb[cont].xPlumb == 160)
-			plumb[cont].heightPlumb = randomize();
-		if(plumb[cont].heightPlumb >= 160)
-			plumb[cont].heightPlumb = 82;
-		else if(plumb[cont].heightPlumb <= 0)
-			plumb[cont].heightPlumb = 40;
-		paintRectangle(plumb[cont].heightPlumb);
+		if(plumb[0].xPlumb == 0)
+			plumb[0].xPlumb = SCREEN_DIMENSION;
+		if(plumb[0].xPlumb == SCREEN_DIMENSION)
+			plumb[0].heightPlumb = randomize();
+		if(plumb[0].heightPlumb >= SCREEN_DIMENSION)
+			plumb[0].heightPlumb = 82;
+		else if(plumb[0].heightPlumb <= 0)
+			plumb[0].heightPlumb = 40;
+		paintRectangle(plumb[0].heightPlumb);
 		painted = 1;
 	}
-	movePlumb(plumb[cont].heightPlumb);
-
+	movePlumb(plumb[0].heightPlumb);
 }
 
 void addPoints()
@@ -164,43 +207,42 @@ void paintRectangle(int safeZone)
 	if(isFirstTime == 1)
 	{
 		isFirstTime = 0;
-		for(i = 24; i <= safeZone; i += 8)
+		for(i = SPACE_POINTS_BAR; i <= safeZone; i += SPACE_TILE)
 		{
 			set_sprite_tile(cont, 8);
-			move_sprite(cont, 160, i);
+			move_sprite(cont, SCREEN_DIMENSION, i);
 			cont ++;
 			set_sprite_tile(cont, 8);
-			move_sprite(cont, 168, i);
+			move_sprite(cont, SCREEN_DIMENSION + SPACE_TILE, i);
 			cont ++;
 		}
-		for(i = safeZone + 32; i <= 160; i += 8)
+		for(i = safeZone + SAFE_ZONE_SPACE; i <= SCREEN_DIMENSION; i += SPACE_TILE)
 		{
 			set_sprite_tile(cont, 8);
-			move_sprite(cont, 160, i);
+			move_sprite(cont, SCREEN_DIMENSION, i);
 			cont ++;
 			set_sprite_tile(cont, 8);
-			move_sprite(cont, 168, i);
+			move_sprite(cont, SCREEN_DIMENSION + SPACE_TILE, i);
 			cont ++;
 		}
 	}
 	else
 	{
-		for(i = 24; i <= safeZone; i += 8)
+		for(i = SPACE_POINTS_BAR; i <= safeZone; i += SPACE_TILE)
 		{
-			move_sprite(cont, 160, i);
+			move_sprite(cont, SCREEN_DIMENSION, i);
 			cont ++;
-			move_sprite(cont, 168, i);
+			move_sprite(cont, SCREEN_DIMENSION + SPACE_TILE, i);
 			cont ++;
 		}
-		for(i = safeZone + 32; i <= 160; i += 8)
+		for(i = safeZone + SAFE_ZONE_SPACE; i <= SCREEN_DIMENSION; i += SPACE_TILE)
 		{
-			move_sprite(cont, 160, i);
+			move_sprite(cont, SCREEN_DIMENSION, i);
 			cont ++;
-			move_sprite(cont, 168, i);
+			move_sprite(cont, SCREEN_DIMENSION + SPACE_TILE, i);
 			cont ++;
 		}
 	}
-	
 }
 
 void movePlumb(int safeZone)
@@ -213,14 +255,14 @@ void movePlumb(int safeZone)
 	leftPlumbSprite -= BIRD_VELOCITY;
 	rightPlumbSprite -= BIRD_VELOCITY;
 	
-	for(i = 24; i <= safeZone; i += 8)
+	for(i = SPACE_POINTS_BAR; i <= safeZone; i += SPACE_TILE)
 	{
 		move_sprite(cont, leftPlumbSprite, i);
 		cont ++;
 		move_sprite(cont, rightPlumbSprite, i);
 		cont ++;
 	}
-	for(i = safeZone + 32; i <= 160; i += 8)
+	for(i = safeZone + SAFE_ZONE_SPACE; i <= SCREEN_DIMENSION; i += SPACE_TILE)
 	{
 		move_sprite(cont, leftPlumbSprite, i);
 		cont ++;
@@ -230,8 +272,8 @@ void movePlumb(int safeZone)
 
 	if(leftPlumbSprite < 0)
 	{
-		leftPlumbSprite = 160;
-		rightPlumbSprite = 168;
+		leftPlumbSprite = SCREEN_DIMENSION;
+		rightPlumbSprite = SCREEN_DIMENSION + SPACE_TILE;
 		painted = 0;
 	}
 
@@ -240,16 +282,13 @@ void movePlumb(int safeZone)
 
 void collision(int safeZone)
 {
-	if(xBird == leftPlumbSprite)
+	gotoxy(0,12);
+	printf("SAFEZONE START: %d\nSAFEZONE END: %d\nYTAILBIRD: %d\nXPLUMB: %d", safeZone, safeZone + SAFE_ZONE_SPACE - SPACE_TILE, yTailBird, leftPlumbSprite);
+	if(xBird >= leftPlumbSprite - SPACE_TILE)
 	{
-		if(yBird >= safeZone && yTailBird <= safeZone + 32)
-		{
+		if(xBird >= safeZone && yTailBird <= safeZone + SAFE_ZONE_SPACE - SPACE_TILE)
 			addPoints();
-		}
-		else
-		{
-			gotoxy(4, 8);
-			printf("GAME OVER");
-		}
+		else 
+			flag = 0;
 	}
 }
