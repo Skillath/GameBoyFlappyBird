@@ -92,19 +92,20 @@ void main(void)
 
 void init()
 {
-	xBird 			= 64;  
-	xBirdLow 		= xBird - SPACE_TILE;  
-	yBird 			= 78;
-	yTailBird 		= yBird - SPACE_TILE;
-	points 			= 0;
-	time 			= 0;
-	m_clock 		= 0;
-	falling 		= 0;
-	timeJumping 	= 0;
-	flag 			= 1;
-	leftPlumbSprite = SCREEN_DIMENSION;
-	rightPlumbSprite = SCREEN_DIMENSION + SPACE_TILE;
-	isFirstTime = 1;
+	xBird 				= 64;  
+	xBirdLow 			= xBird - SPACE_TILE;  
+	yBird 				= 78;
+	yTailBird 			= yBird - SPACE_TILE;
+	points 				= 0;
+	time 				= 0;
+	m_clock 			= 0;
+	falling 			= 0;
+	timeJumping 		= 0;
+	flag 				= 1;
+	leftPlumbSprite 	= SCREEN_DIMENSION;
+	rightPlumbSprite 	= SCREEN_DIMENSION + SPACE_TILE;
+	isFirstTime 		= 1;
+	hasPassedThePlumb 	= 0;
 }
 
 void animateBird(int iter)
@@ -147,7 +148,7 @@ void jumpBird()
 	{
 		int pad = joypad();
 		if(pad & J_A)
-			falling = -2;
+			falling = -1;
 	}
 
 	vY = GRAVITY * falling;
@@ -275,6 +276,7 @@ void movePlumb(int safeZone)
 		leftPlumbSprite = SCREEN_DIMENSION;
 		rightPlumbSprite = SCREEN_DIMENSION + SPACE_TILE;
 		painted = 0;
+		hasPassedThePlumb = 0;
 	}
 
 	
@@ -282,13 +284,17 @@ void movePlumb(int safeZone)
 
 void collision(int safeZone)
 {
-	gotoxy(0,12);
-	printf("SAFEZONE START: %d\nSAFEZONE END: %d\nYTAILBIRD: %d\nXPLUMB: %d", safeZone, safeZone + SAFE_ZONE_SPACE - SPACE_TILE, yTailBird, leftPlumbSprite);
-	if(xBird >= leftPlumbSprite - SPACE_TILE)
+	//gotoxy(0,12);
+	//printf("SAFEZONE START: %d\nSAFEZONE END: %d\nYBIRD: %d\nYTAILBIRD: %d\nXPLUMB: %d", safeZone, safeZone + SAFE_ZONE_SPACE - SPACE_TILE, yBird, yTailBird, leftPlumbSprite);
+	if(xBird == leftPlumbSprite - SPACE_TILE)
 	{
-		if(xBird >= safeZone && yTailBird <= safeZone + SAFE_ZONE_SPACE - SPACE_TILE)
-			addPoints();
+		if(yBird >= safeZone && yTailBird <= safeZone + SAFE_ZONE_SPACE - SPACE_TILE)
+		{
+			if(hasPassedThePlumb == 0)
+				addPoints();
+		}			
 		else 
 			flag = 0;
+		hasPassedThePlumb = 1;
 	}
 }
