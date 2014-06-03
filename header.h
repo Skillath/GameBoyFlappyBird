@@ -1,3 +1,21 @@
+/*
+Game made by Xabier Gonzalez Goienetxea (@Skillath). Not designed by me.
+
+GAMEBOY SPECIFICATIONS:
+- CPU: Custom 8-bit Sharp LR35902 core at 4.19 MHz. 
+- RAM: 8 kB internal S-RAM (can be extended up to 32 kB)
+- Video RAM: 8 kB internal
+- ROM: On-CPU-Die 256-byte bootstrap; 256 kb, 512 kb, 1 Mb, 2 Mb, 4 Mb and 8 Mb cartridges
+- Sound: 2 pulse wave generators, 1 PCM 4-bit wave sample (64 4-bit samples played in 1×64 bank or 2×32 bank) channel, 1 noise generator, and one audio input from the cartridge.
+- Display: Reflective STN LCD SCREEN_DIMENSION × 144 pixels
+- Frame Rate: Approx. 59.7 frames per second on a regular Game Boy, 61.1 on a Super Game Boy
+- Vertical Blank Rate: Approx 1.1 ms
+- Screen size: 66 mm (2.6 in) diagonal
+- Color Palette: 2-bit (4 shades of "gray")
+- Power: 6 V, 0.7 W (4 AA batteries provide 15–30+ hours)
+- Dimensions: 90 mm (W) × 148 mm (H) × 32 mm (D) / 3.5″ × 5.8″ × 1.3″ 
+*/
+
 #include <gb/gb.h>
 #include <gb/console.h>
 #include <stdio.h>

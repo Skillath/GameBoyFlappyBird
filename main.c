@@ -50,7 +50,8 @@ void main(void)
 				{
 					plumb[0].xPlumb = SCREEN_DIMENSION;
 					init();
-				}	
+				}
+				break;	
 			case 0:
 				gotoxy(4, 8);
 				printf("GAME OVER");
@@ -288,7 +289,7 @@ void collision(int safeZone)
 	//printf("SAFEZONE START: %d\nSAFEZONE END: %d\nYBIRD: %d\nYTAILBIRD: %d\nXPLUMB: %d", safeZone, safeZone + SAFE_ZONE_SPACE - SPACE_TILE, yBird, yTailBird, leftPlumbSprite);
 	if(xBird == leftPlumbSprite - SPACE_TILE)
 	{
-		if(yBird >= safeZone && yTailBird <= safeZone + SAFE_ZONE_SPACE - SPACE_TILE)
+		if(yBird > safeZone && yTailBird < safeZone + SAFE_ZONE_SPACE - SPACE_TILE)
 		{
 			if(hasPassedThePlumb == 0)
 				addPoints();
@@ -296,5 +297,10 @@ void collision(int safeZone)
 		else 
 			flag = 0;
 		hasPassedThePlumb = 1;
+	}
+	else if (xBird > leftPlumbSprite - SPACE_TILE && xBird < rightPlumbSprite + SPACE_TILE)
+	{
+		if(yBird <= safeZone && yTailBird >= safeZone + SAFE_ZONE_SPACE - SPACE_TILE)
+			flag = 0;
 	}
 }
