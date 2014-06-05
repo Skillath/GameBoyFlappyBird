@@ -66,7 +66,7 @@ void main(void)
 				break;
 			default:
 				gotoxy(0, 0);
-				printf("POINTS: %d", points);
+				printf("POINTS: %d     ", points);
 
 				gotoxy(4, 8);
 				printf("           ");
@@ -193,7 +193,7 @@ void addPoints()
 {
 	points += 1;
 	gotoxy(0, 0);
-	printf("POINTS: %d", points);
+	printf("POINTS: %d     ", points);
 }
 
 //Custom rand function.
