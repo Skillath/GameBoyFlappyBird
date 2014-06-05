@@ -43,7 +43,9 @@ void main(void)
 				gotoxy(0, 0);
 				printf("POINTS: %d", points);
 				gotoxy(4, 8);
-				printf("FLAPPY BIRD");				
+				printf("FLAPPY BIRD");
+				gotoxy(3, 9);
+				printf("by: @Skillath");				
 				
 				pad = joypad();
 				if(pad & J_START)
@@ -68,15 +70,12 @@ void main(void)
 				gotoxy(0, 0);
 				printf("POINTS: %d     ", points);
 
-				gotoxy(4, 8);
-				printf("           ");
-
 				setPlumb(plumb);
 				animateBird(iteration);
 				jumpBird();
 
 				m_clock++;
-				if(m_clock == 20)
+				if(m_clock == 15)
 				{
 					m_clock = 0;
 					iteration++;
@@ -107,6 +106,12 @@ void init()
 	rightPlumbSprite 	= SCREEN_DIMENSION + SPACE_TILE;
 	isFirstTime 		= 1;
 	hasPassedThePlumb 	= 0;
+
+	gotoxy(4, 8);
+	printf("               ");
+
+	gotoxy(3, 9);
+	printf("               ");
 }
 
 void animateBird(int iter)
