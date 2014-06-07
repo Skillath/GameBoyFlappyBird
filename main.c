@@ -154,7 +154,7 @@ void jumpBird()
 	{
 		int pad = joypad();
 		if(pad & J_A)
-			falling = -1;
+			falling = -1 * GRAVITY;
 	}
 
 	vY = GRAVITY * falling;
