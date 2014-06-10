@@ -283,29 +283,28 @@ void movePlumb(int safeZone)
 		rightPlumbSprite = SCREEN_DIMENSION + SPACE_TILE;
 		painted = 0;
 		hasPassedThePlumb = 0;
-	}
-
-	
+	}	
 }
 
 void collision(int safeZone)
 {
-	//gotoxy(0,12);
-	//printf("SAFEZONE START: %d\nSAFEZONE END: %d\nYBIRD: %d\nYTAILBIRD: %d\nXPLUMB: %d", safeZone, safeZone + SAFE_ZONE_SPACE - SPACE_TILE, yBird, yTailBird, leftPlumbSprite);
 	if(xBird == leftPlumbSprite - SPACE_TILE)
 	{
 		if(yBird > safeZone && yTailBird < safeZone + SAFE_ZONE_SPACE - SPACE_TILE)
+			return;
+		else
+			flag = 0;
+		
+	}
+	else if (xBird > leftPlumbSprite - SPACE_TILE)
+	{
+		if(yBird < safeZone && yTailBird > safeZone + SAFE_ZONE_SPACE - SPACE_TILE)
+			flag = 0;
+		else
 		{
 			if(hasPassedThePlumb == 0)
 				addPoints();
-		}			
-		else 
-			flag = 0;
+		}
 		hasPassedThePlumb = 1;
-	}
-	else if (xBird > leftPlumbSprite - SPACE_TILE && xBird < rightPlumbSprite + SPACE_TILE)
-	{
-		if(yBird <= safeZone && yTailBird >= safeZone + SAFE_ZONE_SPACE - SPACE_TILE)
-			flag = 0;
 	}
 }

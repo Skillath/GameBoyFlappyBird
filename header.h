@@ -17,6 +17,7 @@ GAMEBOY SPECIFICATIONS:
 */
 
 #include <gb/gb.h>
+#include <gb/sample.h>
 #include <gb/console.h>
 #include <stdio.h>
 
