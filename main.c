@@ -23,6 +23,7 @@ void main(void)
 	struct Plumb plumb[PLUMBS];
 	int iteration = 0;
 	int nPlumb = 1;
+	//Prueba
 
 	set_sprite_data(0, 9, Bird);
 	set_sprite_tile(0, 0); //Parameter 1 = number of the tile for reference from other functions. Parameter 2: The number of the tile of the GBTD
