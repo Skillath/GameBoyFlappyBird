@@ -296,7 +296,7 @@ void collision(int safeZone)
 			flag = 0;
 		
 	}
-	else if (xBird > leftPlumbSprite - SPACE_TILE)
+	if (xBird > leftPlumbSprite - SPACE_TILE)
 	{
 		if(yBird < safeZone && yTailBird > safeZone + SAFE_ZONE_SPACE - SPACE_TILE)
 			flag = 0;
