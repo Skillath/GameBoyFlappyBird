@@ -16,9 +16,11 @@ GAMEBOY SPECIFICATIONS:
 - Dimensions: 90 mm (W) × 148 mm (H) × 32 mm (D) / 3.5″ × 5.8″ × 1.3″ 
 */
 
-#include <gb/gb.h>
+#include <gb/gb.h> // INCLUDE GBDK FUNCTION LIBRARY
+#include <gb/hardware.h> // INCLUDE HANDY HARDWARE REFERENCES
 #include <gb/sample.h>
 #include <gb/console.h>
+#include <rand.h>// INCLUDE RANDOM FUNCTIONS
 #include <stdio.h>
 
 #include "Bird.c"
@@ -32,6 +34,15 @@ GAMEBOY SPECIFICATIONS:
 #define SAFE_ZONE_SPACE			40
 #define SCREEN_DIMENSION		160
 
+typedef enum 
+{
+	SPLASH_SCREEN = -1,
+	GAME_OVER = 0,
+	GAME = 1
+} GameStatus;
+
+typedef enum { false, true } bool;
+
 int xBird 				= 		64;  
 int xBirdLow 			= 		xBird - SPACE_TILE;  
 int yBird 				= 		78;
@@ -41,7 +52,7 @@ int time 				= 		0;
 int m_clock 			= 		0;
 int falling 			= 		0;
 int timeJumping 		= 		0;
-int flag 				= 		-1;
+GameStatus flag 		= 		SPLASH_SCREEN;
 int leftPlumbSprite 	= 		SCREEN_DIMENSION;
 int rightPlumbSprite 	= 		SCREEN_DIMENSION + SPACE_TILE;
 int painted 			= 		0;
@@ -59,11 +70,14 @@ struct Plumb
 };
 
 void init();
+void initEngine();
 void animateBird(int iter);
 void jumpBird();
 void setPlumb(struct Plumb* plumb);
 void addPoints();
 void collision(int safeZone);
+void initRandomizer();
 int randomize();
 void paintRectangle(int safeZone);
 void movePlumb(int safeZone);
+bool collisionCheck(UINT8 x1, UINT8 y1, UINT8 w1, UINT8 h1, UINT8 x2, UINT8 y2, UINT8 w2, UINT8 h2);

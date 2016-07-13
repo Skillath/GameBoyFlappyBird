@@ -24,6 +24,7 @@ void main(void)
 	int iteration = 0;
 	int nPlumb = 1;
 	//Prueba
+	initEngine();
 
 	set_sprite_data(0, 9, Bird);
 	set_sprite_tile(0, 0); //Parameter 1 = number of the tile for reference from other functions. Parameter 2: The number of the tile of the GBTD
@@ -32,6 +33,7 @@ void main(void)
   	set_sprite_tile(3, 3);
 	SHOW_SPRITES;
 
+
 	plumb[0].xPlumb = SCREEN_DIMENSION;
 
 	while (!0) 
@@ -39,8 +41,9 @@ void main(void)
 		int pad;
 		switch(flag)
 		{
-			case -1:
-				flag = -1;
+			default:
+			case SPLASH_SCREEN:
+				flag = SPLASH_SCREEN;
 				gotoxy(0, 0);
 				printf("POINTS: %d", points);
 				gotoxy(4, 8);
@@ -52,10 +55,11 @@ void main(void)
 				if(pad & J_START)
 				{
 					plumb[0].xPlumb = SCREEN_DIMENSION;
+					initRandomizer();
 					init();
 				}
 				break;	
-			case 0:
+			case GAME_OVER:
 				gotoxy(4, 8);
 				printf("GAME OVER");
 				
@@ -67,7 +71,22 @@ void main(void)
 					init();
 				}					
 				break;
-			default:
+			case GAME:
+
+				/*NR11_REG = 0x00; // NO A BUTTON - NO SOUND
+				NR12_REG = 0x00;
+				NR13_REG = 0x00;
+				NR14_REG = 0x00;
+
+				pad = joypad();
+				if (pad & J_START)
+				{	
+					NR11_REG = 0x7f; // SQUARE WAVE DUTY
+					NR12_REG = 0x7f; // VOLUME 0 = quietest, 255 = loudest
+					NR13_REG = DIV_REG; // LOWER BITS OF SOUND FREQ
+					NR14_REG = 0x80; // LARGER SOUND FREQ - MINIMUM OF 128 - TOP 3 BYTES - ANY LESS = SOUND CHANNEL SWITCHES OFF
+				}*/
+
 				gotoxy(0, 0);
 				printf("POINTS: %d     ", points);
 
@@ -87,8 +106,20 @@ void main(void)
 				if(time == 3000)
 					time = 0;
 				break;
-		}	
+		
+				 
+		} 
+		wait_vbl_done();	
 	}
+}
+
+void initEngine()
+{
+	DISPLAY_ON; // TURNS ON THE GAMEBOY LCD
+	NR52_REG = 0x8F; // TURN SOUND ON
+	NR51_REG = 0x11; // ENABLE SOUND CHANNELS
+	NR50_REG = 0x1F; // VOLUME MAX = 0x77, MIN = 0x00
+	initrand(DIV_REG); // SEED OUR RANDOMIZER
 }
 
 void init()
@@ -102,7 +133,7 @@ void init()
 	m_clock 			= 0;
 	falling 			= 0;
 	timeJumping 		= 0;
-	flag 				= 1;
+	flag 				= GAME;
 	leftPlumbSprite 	= SCREEN_DIMENSION;
 	rightPlumbSprite 	= SCREEN_DIMENSION + SPACE_TILE;
 	isFirstTime 		= 1;
@@ -113,6 +144,13 @@ void init()
 
 	gotoxy(3, 9);
 	printf("               ");
+}
+
+void initRandomizer()
+{
+	UWORD seed = DIV_REG;
+	seed |= (UWORD)DIV_REG << 8;
+	initarand(seed);
 }
 
 void animateBird(int iter)
@@ -156,6 +194,7 @@ void jumpBird()
 		int pad = joypad();
 		if(pad & J_A)
 			falling = -1 * GRAVITY;
+		
 	}
 
 	vY = GRAVITY * falling;
@@ -167,7 +206,7 @@ void jumpBird()
 	}
 
 	if(yTailBird + SPACE_TILE + vY >= SCREEN_DIMENSION)
-		flag = 0;
+		flag = GAME_OVER;
 	if(m_clock == 4)
 		falling ++;
 	if(falling == 0)
@@ -205,6 +244,7 @@ void addPoints()
 //Custom rand function.
 int randomize()
 {
+	
 	return positions[time % 10];
 }
 
@@ -294,13 +334,13 @@ void collision(int safeZone)
 		if(yBird > safeZone && yTailBird < safeZone + SAFE_ZONE_SPACE - SPACE_TILE)
 			return;
 		else
-			flag = 0;
+			flag = GAME_OVER;
 		
 	}
 	if (xBird > leftPlumbSprite - SPACE_TILE)
 	{
 		if(yBird < safeZone && yTailBird > safeZone + SAFE_ZONE_SPACE - SPACE_TILE)
-			flag = 0;
+			flag = GAME_OVER;
 		else
 		{
 			if(hasPassedThePlumb == 0)
@@ -308,4 +348,12 @@ void collision(int safeZone)
 		}
 		hasPassedThePlumb = 1;
 	}
+}
+
+bool collisionCheck(UINT8 x1, UINT8 y1, UINT8 w1, UINT8 h1, UINT8 x2, UINT8 y2, UINT8 w2, UINT8 h2)
+{
+	if(((x1 < (x2+w2)) && ((x1+w1) > x2) && (y1 < (h2+y2)) && ((y1+h1) > y2)))
+		return true;
+
+	return false;
 }
