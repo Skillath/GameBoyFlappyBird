@@ -134,7 +134,7 @@ void update()
 
 				//setPlumb(&lowerPlumb);
 				//animateBird(iteration);
-				jumpBird();
+				//jumpBird();
 
 				m_clock++;
 				if(m_clock == 15)
@@ -221,7 +221,7 @@ void animateBird(int iter)
 	}
 }
 
-void jumpBird()
+/*void jumpBird()
 {
 	int vY;
 	if(falling > 0)
@@ -250,7 +250,7 @@ void jumpBird()
 		falling = MAX_FALL_VELOCITY;
 
 }
-/*
+
 void setLowerPlumb(struct LowerPlumb* lowerPlumb)
 {
 	if(painted == 0)
