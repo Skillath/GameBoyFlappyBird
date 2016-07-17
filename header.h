@@ -23,11 +23,10 @@ GAMEBOY SPECIFICATIONS:
 #include <rand.h>// INCLUDE RANDOM FUNCTIONS
 #include <stdio.h>
 
-#include "Bird.c"
+#include "sprites.c"
 
 #define PLUMBS 					1
 #define GRAVITY 				1
-#define BIRD_VELOCITY 			1
 #define SPACE_TILE			 	8
 #define MAX_FALL_VELOCITY	 	4
 #define SPACE_POINTS_BAR		24
@@ -40,8 +39,6 @@ typedef enum
 	GAME_OVER = 0,
 	GAME = 1
 } GameStatus;
-
-typedef enum { false, true } bool;
 
 int xBird 				= 		64;  
 int xBirdLow 			= 		xBird - SPACE_TILE;  
@@ -61,23 +58,58 @@ int hasPassedThePlumb 	= 		0;
 
 int positions[10] 		= 		{72, 80, 124, 32, 64, 112, 24, 48, 32, 96};
 
-int xUpperPlumb, xLowerPlumb;
-
-struct Plumb
+struct LowerPlumb
 {
-	int xPlumb;
-	int heightPlumb;
+	int x;
+	int y;
+	unsigned int height;
+	unsigned int width;
+
+	int vX;
+	int vY;
 };
 
-void init();
-void initEngine();
+struct UpperPlumb
+{
+	int x;
+	int y;
+	unsigned int height;
+	unsigned int width;
+
+	int vX;
+	int vY;
+};
+
+struct Peluchito
+{
+	unsigned int x;
+	unsigned int y;
+	unsigned int height;
+	unsigned int width;
+
+	int vX;
+	int vY;
+};
+
+const unsigned int lowerPlumbTiles[] = {0, 1, 2, 3, 4, 5};
+const unsigned int upperPlumbTiles[] = {6, 7, 8, 9, 10, 11};
+const unsigned int peluchitoTiles[] = {12,13,14,15,16,17,18,19};
+
+void awake();
+void start();
+void update();
+void draw();
+
+
 void animateBird(int iter);
 void jumpBird();
-void setPlumb(struct Plumb* plumb);
+void setLowerPlumb(struct LowerPlumb* plumb);
+void setUpperPlumb(struct UpperPlumb* plumb);
 void addPoints();
 void collision(int safeZone);
 void initRandomizer();
-int randomize();
+unsigned int randomize();
+unsigned int random(unsigned int min, unsigned int max);
 void paintRectangle(int safeZone);
 void movePlumb(int safeZone);
-bool collisionCheck(UINT8 x1, UINT8 y1, UINT8 w1, UINT8 h1, UINT8 x2, UINT8 y2, UINT8 w2, UINT8 h2);
+int collisionCheck(UINT8 x1, UINT8 y1, UINT8 w1, UINT8 h1, UINT8 x2, UINT8 y2, UINT8 w2, UINT8 h2);

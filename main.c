@@ -18,80 +18,122 @@ GAMEBOY SPECIFICATIONS:
 
 #include "header.h"
 
+struct LowerPlumb lowerPlumb;
+struct UpperPlumb upperPlumb;
+struct Peluchito peluchito;
+int iteration = 0;
+
 void main(void)
 {
-	struct Plumb plumb[PLUMBS];
-	int iteration = 0;
-	int nPlumb = 1;
-	//Prueba
-	initEngine();
+	awake();
+	//start();
 
-	set_sprite_data(0, 9, Bird);
+	while(TRUE)
+	{
+		update();
+		draw();
+
+		wait_vbl_done();	
+	}
+}
+
+void awake()
+{
+	DISPLAY_ON; // TURNS ON THE GAMEBOY LCD
+	NR52_REG = 0x8F; // TURN SOUND ON
+	NR51_REG = 0x11; // ENABLE SOUND CHANNELS
+	NR50_REG = 0x1F; // VOLUME MAX = 0x77, MIN = 0x00
+	initrand(DIV_REG); // SEED OUR RANDOMIZER
+
+	peluchito.x = 64;
+	peluchito.y = 78;
+	peluchito.width = 16;
+	peluchito.height = 16;
+	peluchito.vX = 0;
+	peluchito.vY = 0;
+
+	lowerPlumb.x = SCREEN_DIMENSION;
+	lowerPlumb.y = 0;
+	lowerPlumb.width = 16;
+	lowerPlumb.vX = -1;
+	lowerPlumb.vY = 0;
+	lowerPlumb.height = SCREEN_DIMENSION;
+
+	upperPlumb.x = SCREEN_DIMENSION;
+	upperPlumb.y = 0;
+	upperPlumb.width = 16;
+	upperPlumb.vX = -1;
+	upperPlumb.vY = 0;
+	upperPlumb.height = SCREEN_DIMENSION;
+
+	set_sprite_data(0, 20, GameSprites);
+	/*BIRD*/
 	set_sprite_tile(0, 0); //Parameter 1 = number of the tile for reference from other functions. Parameter 2: The number of the tile of the GBTD
   	set_sprite_tile(1, 1);
   	set_sprite_tile(2, 2);
   	set_sprite_tile(3, 3);
+
+	/*Lower Plumb */
+	set_sprite_tile(10, 0);
+	set_sprite_tile(11, 1);
+	set_sprite_tile(12, 2);
+	set_sprite_tile(13, 3);
+	set_sprite_tile(14, 3);
+	set_sprite_tile(15, 3);
+
+	/*Upper Plumb */
+	set_sprite_tile(20, 0);
+	set_sprite_tile(21, 1);
+	set_sprite_tile(22, 2);
+	set_sprite_tile(23, 3);
+	set_sprite_tile(24, 3);
+	set_sprite_tile(25, 3);
 	SHOW_SPRITES;
 
+	lowerPlumb.x = SCREEN_DIMENSION;
 
-	plumb[0].xPlumb = SCREEN_DIMENSION;
+	flag = SPLASH_SCREEN;
+}
 
-	while (!0) 
-	{		
-		int pad;
-		switch(flag)
-		{
-			default:
-			case SPLASH_SCREEN:
-				flag = SPLASH_SCREEN;
-				gotoxy(0, 0);
-				printf("POINTS: %d", points);
-				gotoxy(4, 8);
-				printf("FLAPPY BIRD");
-				gotoxy(3, 9);
-				printf("by: @Skillath");				
-				
-				pad = joypad();
-				if(pad & J_START)
-				{
-					plumb[0].xPlumb = SCREEN_DIMENSION;
-					initRandomizer();
-					init();
-				}
-				break;	
-			case GAME_OVER:
-				gotoxy(4, 8);
-				printf("GAME OVER");
-				
-				pad = joypad();
-				if(pad & J_START)
-				{
-					iteration = 0;
-					plumb[0].xPlumb = SCREEN_DIMENSION;
-					init();
-				}					
-				break;
-			case GAME:
+void start()
+{
+	initRandomizer();
 
-				/*NR11_REG = 0x00; // NO A BUTTON - NO SOUND
-				NR12_REG = 0x00;
-				NR13_REG = 0x00;
-				NR14_REG = 0x00;
+	iteration = 0;
+	points 				= 0;
+	time 				= 0;
+	m_clock 			= 0;
+	falling 			= 0;
+	timeJumping 		= 0;
+	flag 				= GAME;
+	leftPlumbSprite 	= SCREEN_DIMENSION;
+	rightPlumbSprite 	= SCREEN_DIMENSION + SPACE_TILE;
+	isFirstTime 		= TRUE;
+	hasPassedThePlumb 	= FALSE;
 
-				pad = joypad();
-				if (pad & J_START)
-				{	
-					NR11_REG = 0x7f; // SQUARE WAVE DUTY
-					NR12_REG = 0x7f; // VOLUME 0 = quietest, 255 = loudest
-					NR13_REG = DIV_REG; // LOWER BITS OF SOUND FREQ
-					NR14_REG = 0x80; // LARGER SOUND FREQ - MINIMUM OF 128 - TOP 3 BYTES - ANY LESS = SOUND CHANNEL SWITCHES OFF
-				}*/
+	gotoxy(4, 8);
+	printf("               ");
 
+	gotoxy(3, 9);
+	printf("               ");
+}
+
+void update()
+{
+	int pad = joypad();
+	switch(flag)
+	{
+		default:
+		case SPLASH_SCREEN:	
+			if(pad & J_START)
+				start();
+			break;
+		case GAME:
 				gotoxy(0, 0);
 				printf("POINTS: %d     ", points);
 
-				setPlumb(plumb);
-				animateBird(iteration);
+				//setPlumb(&lowerPlumb);
+				//animateBird(iteration);
 				jumpBird();
 
 				m_clock++;
@@ -106,44 +148,37 @@ void main(void)
 				if(time == 3000)
 					time = 0;
 				break;
-		
-				 
-		} 
-		wait_vbl_done();	
+			break;
+		case GAME_OVER:
+			if(pad & J_START)
+			{
+				iteration = 0;
+				start();
+			}	
+			break;
 	}
 }
 
-void initEngine()
+void draw()
 {
-	DISPLAY_ON; // TURNS ON THE GAMEBOY LCD
-	NR52_REG = 0x8F; // TURN SOUND ON
-	NR51_REG = 0x11; // ENABLE SOUND CHANNELS
-	NR50_REG = 0x1F; // VOLUME MAX = 0x77, MIN = 0x00
-	initrand(DIV_REG); // SEED OUR RANDOMIZER
-}
-
-void init()
-{
-	xBird 				= 64;  
-	xBirdLow 			= xBird - SPACE_TILE;  
-	yBird 				= 78;
-	yTailBird 			= yBird - SPACE_TILE;
-	points 				= 0;
-	time 				= 0;
-	m_clock 			= 0;
-	falling 			= 0;
-	timeJumping 		= 0;
-	flag 				= GAME;
-	leftPlumbSprite 	= SCREEN_DIMENSION;
-	rightPlumbSprite 	= SCREEN_DIMENSION + SPACE_TILE;
-	isFirstTime 		= 1;
-	hasPassedThePlumb 	= 0;
-
-	gotoxy(4, 8);
-	printf("               ");
-
-	gotoxy(3, 9);
-	printf("               ");
+	switch(flag)
+	{
+		default:
+		case SPLASH_SCREEN:
+			gotoxy(0, 0);
+			printf("POINTS: %d", points);
+			gotoxy(4, 8);
+			printf("FLAPPY BIRD");
+			gotoxy(3, 9);
+			printf("by: @Skillath");				
+			break;
+		case GAME:
+			break;
+		case GAME_OVER:
+			gotoxy(4, 8);
+			printf("GAME OVER");
+			break;
+	}
 }
 
 void initRandomizer()
@@ -155,15 +190,15 @@ void initRandomizer()
 
 void animateBird(int iter)
 {
-	move_sprite(0, xBird, yTailBird);
-	move_sprite(1, xBird, yBird);
+	move_sprite(0, peluchito.x, peluchito.height);
+	move_sprite(1, peluchito.x, peluchito.y);
 	switch(iter)
 	{
 		case 0:
 			set_sprite_tile(2, 4);
-			move_sprite(2, xBirdLow, yTailBird);
+			move_sprite(2, xBirdLow, peluchito.height);
 			set_sprite_tile(3, 5);
-			move_sprite(3, xBirdLow, yBird);
+			move_sprite(3, peluchito.x, peluchito.height);
 			break;
 		case 1:
 			set_sprite_tile(2, 2);
@@ -215,24 +250,25 @@ void jumpBird()
 		falling = MAX_FALL_VELOCITY;
 
 }
-
-void setPlumb(struct Plumb* plumb)
+/*
+void setLowerPlumb(struct LowerPlumb* lowerPlumb)
 {
 	if(painted == 0)
 	{
-		if(plumb[0].xPlumb == 0)
-			plumb[0].xPlumb = SCREEN_DIMENSION;
-		if(plumb[0].xPlumb == SCREEN_DIMENSION)
-			plumb[0].heightPlumb = randomize();
-		if(plumb[0].heightPlumb >= SCREEN_DIMENSION)
-			plumb[0].heightPlumb = 82;
-		else if(plumb[0].heightPlumb <= 0)
-			plumb[0].heightPlumb = 40;
-		paintRectangle(plumb[0].heightPlumb);
+		if(lowerPlumb->x == 0)
+			lowerPlumb->x = SCREEN_DIMENSION;
+		if(lowerPlumb->x == SCREEN_DIMENSION)
+			lowerPlumb->height = randomize();
+		if(lowerPlumb->height >= SCREEN_DIMENSION)
+			lowerPlumb->height = 82;
+		else if(lowerPlumb->height <= 0)
+			lowerPlumb->height = 40;
+		paintRectangle(lowerPlumb->height);
 		painted = 1;
 	}
-	movePlumb(plumb[0].heightPlumb);
-}
+
+	movePlumb(lowerPlumb->height);
+}*/
 
 void addPoints()
 {
@@ -242,12 +278,17 @@ void addPoints()
 }
 
 //Custom rand function.
-int randomize()
+unsigned int randomize()
 {
 	
 	return positions[time % 10];
 }
 
+unsigned int random(unsigned int min, unsigned int max)
+{
+	return rand() % (max + 1 - min) + min;
+}
+/*
 void paintRectangle(int safeZone)
 {
 	int i;
@@ -350,10 +391,11 @@ void collision(int safeZone)
 	}
 }
 
-bool collisionCheck(UINT8 x1, UINT8 y1, UINT8 w1, UINT8 h1, UINT8 x2, UINT8 y2, UINT8 w2, UINT8 h2)
+int collisionCheck(UINT8 x1, UINT8 y1, UINT8 w1, UINT8 h1, UINT8 x2, UINT8 y2, UINT8 w2, UINT8 h2)
 {
 	if(((x1 < (x2+w2)) && ((x1+w1) > x2) && (y1 < (h2+y2)) && ((y1+h1) > y2)))
-		return true;
+		return TRUE;
 
-	return false;
+	return FALSE;
 }
+*/
