@@ -23,6 +23,7 @@ GAMEBOY SPECIFICATIONS:
 #include <rand.h>// INCLUDE RANDOM FUNCTIONS
 #include <stdio.h>
 
+
 #include "sprites.c"
 
 #define PLUMBS 					1
@@ -100,8 +101,11 @@ void start();
 void update();
 void draw();
 
+void soundInit();
+void soundCleanNoise();
 
 void animateBird(int iter);
+void updateBird();
 void jumpBird();
 void setLowerPlumb(struct LowerPlumb* plumb);
 void setUpperPlumb(struct UpperPlumb* plumb);

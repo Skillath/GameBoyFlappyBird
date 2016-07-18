@@ -17,6 +17,7 @@ GAMEBOY SPECIFICATIONS:
 */
 
 #include "header.h"
+#include "sound.c"
 
 struct LowerPlumb lowerPlumb;
 struct UpperPlumb upperPlumb;
@@ -40,9 +41,7 @@ void main(void)
 void awake()
 {
 	DISPLAY_ON; // TURNS ON THE GAMEBOY LCD
-	NR52_REG = 0x8F; // TURN SOUND ON
-	NR51_REG = 0x11; // ENABLE SOUND CHANNELS
-	NR50_REG = 0x1F; // VOLUME MAX = 0x77, MIN = 0x00
+	soundInit();
 	initrand(DIV_REG); // SEED OUR RANDOMIZER
 
 	peluchito.x = 64;
@@ -68,10 +67,14 @@ void awake()
 
 	set_sprite_data(0, 20, GameSprites);
 	/*BIRD*/
-	set_sprite_tile(0, 0); //Parameter 1 = number of the tile for reference from other functions. Parameter 2: The number of the tile of the GBTD
-  	set_sprite_tile(1, 1);
-  	set_sprite_tile(2, 2);
-  	set_sprite_tile(3, 3);
+	set_sprite_tile(0, 12); //Parameter 1 = number of the tile for reference from other functions. Parameter 2: The number of the tile of the GBTD
+  	set_sprite_tile(1, 13);
+  	set_sprite_tile(2, 14);
+  	set_sprite_tile(3, 15);
+	set_sprite_tile(4, 16); //Parameter 1 = number of the tile for reference from other functions. Parameter 2: The number of the tile of the GBTD
+  	set_sprite_tile(5, 17);
+  	set_sprite_tile(6, 18);
+  	set_sprite_tile(7, 19);
 
 	/*Lower Plumb */
 	set_sprite_tile(10, 0);
@@ -90,8 +93,6 @@ void awake()
 	set_sprite_tile(25, 3);
 	SHOW_SPRITES;
 
-	lowerPlumb.x = SCREEN_DIMENSION;
-
 	flag = SPLASH_SCREEN;
 }
 
@@ -99,7 +100,7 @@ void start()
 {
 	initRandomizer();
 
-	iteration = 0;
+	iteration 			= 0;
 	points 				= 0;
 	time 				= 0;
 	m_clock 			= 0;
@@ -111,16 +112,17 @@ void start()
 	isFirstTime 		= TRUE;
 	hasPassedThePlumb 	= FALSE;
 
-	gotoxy(4, 8);
-	printf("               ");
+	gotoxy(2, 7);
+	printf("                                                                ");
 
 	gotoxy(3, 9);
-	printf("               ");
+	printf("                                                                ");
 }
 
 void update()
 {
 	int pad = joypad();
+			updateMusicMenu(); //Play the music.
 	switch(flag)
 	{
 		default:
@@ -130,7 +132,7 @@ void update()
 			break;
 		case GAME:
 				gotoxy(0, 0);
-				printf("POINTS: %d     ", points);
+				printf("POINTS: %d                  ", points);
 
 				//setPlumb(&lowerPlumb);
 				//animateBird(iteration);
@@ -167,18 +169,35 @@ void draw()
 		case SPLASH_SCREEN:
 			gotoxy(0, 0);
 			printf("POINTS: %d", points);
-			gotoxy(4, 8);
-			printf("FLAPPY BIRD");
+			gotoxy(2, 7);
+			printf("FLAPPY PELUCHITO");
 			gotoxy(3, 9);
-			printf("by: @Skillath");				
+			printf("Xabier Gonzalez\n    (@Skillath)");				
 			break;
 		case GAME:
+			animateBird(0);
 			break;
 		case GAME_OVER:
 			gotoxy(4, 8);
 			printf("GAME OVER");
 			break;
 	}
+}
+
+void soundInit()
+{
+    NR52_REG = 0xFFU;
+    NR51_REG = 0x00U;
+    NR50_REG = 0x77U;
+}
+
+void soundCleanNoise()
+{
+	NR41_REG = 1;//0x0FU; //Duration
+    NR42_REG = 1;         //Volumen
+    NR43_REG = 1;         //Tone
+    NR44_REG = 0xC0U;
+    NR51_REG |= 0x88;
 }
 
 void initRandomizer()
@@ -188,11 +207,18 @@ void initRandomizer()
 	initarand(seed);
 }
 
+void updateBird()
+{
+
+}
+
 void animateBird(int iter)
 {
-	move_sprite(0, peluchito.x, peluchito.height);
-	move_sprite(1, peluchito.x, peluchito.y);
-	switch(iter)
+	move_sprite(0, peluchito.x, peluchito.y);
+	move_sprite(1, peluchito.x, peluchito.y + peluchito.height / 2);
+	move_sprite(2, peluchito.x + peluchito.width / 2, peluchito.y);
+	move_sprite(3, peluchito.x + peluchito.width / 2, peluchito.y + peluchito.height / 2);
+	/*switch(iter)
 	{
 		case 0:
 			set_sprite_tile(2, 4);
@@ -218,7 +244,7 @@ void animateBird(int iter)
 			set_sprite_tile(3, 7);
 			move_sprite(3, xBirdLow, yBird);
 			break;	
-	}
+	}*/
 }
 
 /*void jumpBird()
@@ -274,7 +300,7 @@ void addPoints()
 {
 	points += 1;
 	gotoxy(0, 0);
-	printf("POINTS: %d     ", points);
+	printf("POINTS: %d                  ", points);
 }
 
 //Custom rand function.
