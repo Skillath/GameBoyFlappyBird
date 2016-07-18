@@ -23,11 +23,11 @@ struct LowerPlumb lowerPlumb;
 struct UpperPlumb upperPlumb;
 struct Peluchito peluchito;
 int iteration = 0;
+int pressedA = 0;
 
 void main(void)
 {
 	awake();
-	//start();
 
 	while(TRUE)
 	{
@@ -44,8 +44,8 @@ void awake()
 	soundInit();
 	initrand(DIV_REG); // SEED OUR RANDOMIZER
 
-	peluchito.x = 64;
-	peluchito.y = 78;
+	peluchito.x = 50;
+	peluchito.y = 100;
 	peluchito.width = 16;
 	peluchito.height = 16;
 	peluchito.vX = 0;
@@ -102,7 +102,7 @@ void start()
 
 	iteration 			= 0;
 	points 				= 0;
-	time 				= 0;
+	time 				= 0x00;
 	m_clock 			= 0;
 	falling 			= 0;
 	timeJumping 		= 0;
@@ -134,21 +134,10 @@ void update()
 				gotoxy(0, 0);
 				printf("POINTS: %d                  ", points);
 
-				//setPlumb(&lowerPlumb);
-				//animateBird(iteration);
-				//jumpBird();
-
-				m_clock++;
-				if(m_clock == 15)
-				{
-					m_clock = 0;
-					iteration++;
-					if(iteration >= 4)
-						iteration = 0;
-				}
 				time++;
-				if(time == 3000)
-					time = 0;
+				if(time >= 0xFF)  
+					time = 0x00; 
+				updateBird();
 				break;
 			break;
 		case GAME_OVER:
@@ -175,7 +164,7 @@ void draw()
 			printf("Xabier Gonzalez\n    (@Skillath)");				
 			break;
 		case GAME:
-			animateBird(0);
+			animateBird();
 			break;
 		case GAME_OVER:
 			gotoxy(4, 8);
@@ -209,15 +198,60 @@ void initRandomizer()
 
 void updateBird()
 {
+	int input = joypad();
+	/*gotoxy(0,1);
+	printf("vY -> %d       \nY -> %d         ", peluchito.vY, peluchito.y);*/
+	if((input & J_A) && (pressedA == 0)) 
+	{
+		peluchito.vY = -4;
+		//sound_flap();
+		pressedA = 1;
+	} 
+	else if((input & J_A) == 0) 
+	{
+		pressedA = 0;
+	}
 
+	if(peluchito.y < 144 ) 
+	{
+		if(time % 5 == 0) 
+		{
+			peluchito.vY++;
+		}	
+		//hit the ceiling
+		if( (peluchito.y + peluchito.vY) < 10) {
+			//sound_you_die();
+			//trans_gameplay_gameover();
+			peluchito.vY = 0; // I just found out the ceiling doesn't kill you in the original
+		}
+		peluchito.y += peluchito.vY;
+	}
+
+	moveBird(0,0);
 }
 
-void animateBird(int iter)
+void moveBird(unsigned int x, unsigned int y)
 {
-	move_sprite(0, peluchito.x, peluchito.y);
-	move_sprite(1, peluchito.x, peluchito.y + peluchito.height / 2);
-	move_sprite(2, peluchito.x + peluchito.width / 2, peluchito.y);
-	move_sprite(3, peluchito.x + peluchito.width / 2, peluchito.y + peluchito.height / 2);
+	peluchito.x += x;
+	peluchito.y += y;
+}
+
+void animateBird()
+{
+	if(peluchito.vY > 0)
+	{
+		move_sprite(4, peluchito.x, peluchito.y);
+		move_sprite(5, peluchito.x, peluchito.y + peluchito.height / 2);
+		move_sprite(6, peluchito.x + peluchito.width / 2, peluchito.y);
+		move_sprite(7, peluchito.x + peluchito.width / 2, peluchito.y + peluchito.height / 2);
+	}
+	else
+	{
+		move_sprite(0, peluchito.x, peluchito.y);
+		move_sprite(1, peluchito.x, peluchito.y + peluchito.height / 2);
+		move_sprite(2, peluchito.x + peluchito.width / 2, peluchito.y);
+		move_sprite(3, peluchito.x + peluchito.width / 2, peluchito.y + peluchito.height / 2);
+	}
 	/*switch(iter)
 	{
 		case 0:
