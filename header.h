@@ -104,8 +104,8 @@ void draw();
 void soundInit();
 void soundCleanNoise();
 
-void animateBird();
-void updateBird();
+void animatePlayer();
+void updatePlayer();
 void jumpBird();
 void moveBird(int x, int y);
 void setLowerPlumb(struct LowerPlumb* plumb);

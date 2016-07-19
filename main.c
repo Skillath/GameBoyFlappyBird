@@ -24,6 +24,7 @@ struct UpperPlumb upperPlumb;
 struct Peluchito peluchito;
 int iteration = 0;
 int pressedA = 0;
+int input;
 
 void main(void)
 {
@@ -98,6 +99,27 @@ void awake()
 
 void start()
 {
+	peluchito.x = 50;
+	peluchito.y = 100;
+	peluchito.width = 16;
+	peluchito.height = 16;
+	peluchito.vX = 0;
+	peluchito.vY = 0;
+
+	lowerPlumb.x = SCREEN_DIMENSION;
+	lowerPlumb.y = 0;
+	lowerPlumb.width = 16;
+	lowerPlumb.vX = -1;
+	lowerPlumb.vY = 0;
+	lowerPlumb.height = SCREEN_DIMENSION;
+
+	upperPlumb.x = SCREEN_DIMENSION;
+	upperPlumb.y = 0;
+	upperPlumb.width = 16;
+	upperPlumb.vX = -1;
+	upperPlumb.vY = 0;
+	upperPlumb.height = SCREEN_DIMENSION;
+
 	initRandomizer();
 
 	iteration 			= 0;
@@ -121,13 +143,13 @@ void start()
 
 void update()
 {
-	int pad = joypad();
+	input = joypad();
 	switch(flag)
 	{
 		default:
 		case SPLASH_SCREEN:	
 			updateMusicMenu(); //Play the music.
-			if(pad & J_START)
+			if(input & J_START)
 				start();
 			break;
 		case GAME:
@@ -136,13 +158,12 @@ void update()
 					time = 0x00;
 
 				updateMusicGameplay();
-				updateBird();
+				updatePlayer();
 				break;
 			break;
 		case GAME_OVER:
-			if(pad & J_START)
+			if(input & J_START)
 			{
-				iteration = 0;
 				start();
 			}	
 			break;
@@ -163,10 +184,10 @@ void draw()
 			printf("Xabier Gonzalez\n    (@Skillath)");				
 			break;
 		case GAME:
-			animateBird();
+			animatePlayer();
 
 			gotoxy(0, 0);
-			printf("POINTS: %d    %d      %d        ", peluchito.y, time%5, peluchito.vY);
+			printf("POINTS: %d         ", points);
 			//delay(1000);
 
 			break;
@@ -200,9 +221,8 @@ void initRandomizer()
 	initarand(seed);
 }
 
-void updateBird()
+void updatePlayer()
 {
-	int input = joypad();
 	/*gotoxy(0,1);
 	printf("vY -> %d       \nY -> %d         ", peluchito.vY, peluchito.y);*/
 	if((input & J_A) && (pressedA == 0)) 
@@ -210,31 +230,38 @@ void updateBird()
 		peluchito.vY = -4;
 		//sound_flap();
 		pressedA = 1;
+
+		
 	} 
 	else if((input & J_A) == 0) 
 	{
 		pressedA = 0;
 	}
 
-	if(peluchito.y < 160) 
+	if(peluchito.y < (SCREEN_DIMENSION - peluchito.height)) 
 	{
-		unsigned int tm = time % 5;
-		if(tm == 0) 
-		{
-			peluchito.vY += 1;
-			
-		}	
-
-		if( (peluchito.y + peluchito.vY) < 24) {
+		UBYTE tm = time % 0x05;
+		peluchito.vY += tm < 1;
+		
+		
+		if((peluchito.y + peluchito.vY) < 24) {
 			//sound_you_die();
 			//trans_gameplay_gameover();
 			peluchito.vY = 0; // I just found out the ceiling doesn't kill you in the original
 		}
+
 		//hit the ceiling
-		peluchito.y += peluchito.vY;
+		
+	}
+	else
+	{
+		peluchito.vY = 0;
+		peluchito.vX = 0;
+		peluchito.y = SCREEN_DIMENSION - peluchito.height;
+		flag = GAME_OVER;
 	}
 
-	moveBird(0,0);
+	moveBird(peluchito.vX,peluchito.vY);
 }
 
 void moveBird(int x, int y)
@@ -243,21 +270,26 @@ void moveBird(int x, int y)
 	peluchito.y += y;
 }
 
-void animateBird()
+void animatePlayer()
 {
-	if(peluchito.vY > 0)
+	move_sprite(0, peluchito.x, peluchito.y);
+	move_sprite(1, peluchito.x, peluchito.y + peluchito.height / 2);
+	move_sprite(2, peluchito.x + peluchito.width / 2, peluchito.y);
+	move_sprite(3, peluchito.x + peluchito.width / 2, peluchito.y + peluchito.height / 2);
+
+	if(peluchito.vY < 0)
 	{
-		move_sprite(4, peluchito.x, peluchito.y);
-		move_sprite(5, peluchito.x, peluchito.y + peluchito.height / 2);
-		move_sprite(6, peluchito.x + peluchito.width / 2, peluchito.y);
-		move_sprite(7, peluchito.x + peluchito.width / 2, peluchito.y + peluchito.height / 2);
+		set_sprite_tile(0, 16); //Parameter 1 = number of the tile for reference from other functions. Parameter 2: The number of the tile of the GBTD
+		set_sprite_tile(1, 17);
+		set_sprite_tile(2, 18);
+		set_sprite_tile(3, 19);
 	}
 	else
 	{
-		move_sprite(0, peluchito.x, peluchito.y);
-		move_sprite(1, peluchito.x, peluchito.y + peluchito.height / 2);
-		move_sprite(2, peluchito.x + peluchito.width / 2, peluchito.y);
-		move_sprite(3, peluchito.x + peluchito.width / 2, peluchito.y + peluchito.height / 2);
+		set_sprite_tile(0, 12); //Parameter 1 = number of the tile for reference from other functions. Parameter 2: The number of the tile of the GBTD
+		set_sprite_tile(1, 13);
+		set_sprite_tile(2, 14);
+		set_sprite_tile(3, 15);
 	}
 	/*switch(iter)
 	{
