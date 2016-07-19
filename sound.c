@@ -61,7 +61,7 @@ void playMusicGameplay(){
 void updateMusicMenu(){
     if (timerCounter >= 7){
             timerCounter = 0;
-            currentBeat = currentBeat == 60 ? 0 : currentBeat+1;
+            currentBeat = currentBeat == 53 ? 0 : currentBeat+1;
             playMusicMenu();
     }
     timerCounter++;
@@ -77,19 +77,19 @@ void updateMusicGameover(){
 }
 
 void updateMusicGameplay(){
-    if (timerCounter >= 7 - moreSpeed){
+    if (timerCounter >= 14 - moreSpeed){
             timerCounter = 0;
-            if (currentBeat < 352)
+            if (currentBeat < 53)
             {
                 currentBeat++;
             }
             else
             {
                 currentBeat = 0;
-                if (moreSpeed < 5)
+                /*if (moreSpeed < 5)
                 {
                     moreSpeed++;
-                }
+                }*/
             }
             playMusicGameplay();
     }

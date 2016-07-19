@@ -46,7 +46,7 @@ int xBirdLow 			= 		xBird - SPACE_TILE;
 int yBird 				= 		78;
 int yTailBird 			= 		yBird - SPACE_TILE;
 int points 				= 		0;
-static UBYTE time 		= 		0x00;
+UBYTE time 		= 		0x00;
 int m_clock 			= 		0;
 int falling 			= 		0;
 int timeJumping 		= 		0;
@@ -83,8 +83,8 @@ struct UpperPlumb
 
 struct Peluchito
 {
-	unsigned int x;
-	unsigned int y;
+	int x;
+	int y;
 	unsigned int height;
 	unsigned int width;
 
@@ -107,7 +107,7 @@ void soundCleanNoise();
 void animateBird();
 void updateBird();
 void jumpBird();
-void moveBird(unsigned int x, unsigned int y);
+void moveBird(int x, int y);
 void setLowerPlumb(struct LowerPlumb* plumb);
 void setUpperPlumb(struct UpperPlumb* plumb);
 void addPoints();

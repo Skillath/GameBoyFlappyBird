@@ -122,21 +122,20 @@ void start()
 void update()
 {
 	int pad = joypad();
-			updateMusicMenu(); //Play the music.
 	switch(flag)
 	{
 		default:
 		case SPLASH_SCREEN:	
+			updateMusicMenu(); //Play the music.
 			if(pad & J_START)
 				start();
 			break;
 		case GAME:
-				gotoxy(0, 0);
-				printf("POINTS: %d                  ", points);
-
 				time++;
 				if(time >= 0xFF)  
-					time = 0x00; 
+					time = 0x00;
+
+				updateMusicGameplay();
 				updateBird();
 				break;
 			break;
@@ -157,7 +156,7 @@ void draw()
 		default:
 		case SPLASH_SCREEN:
 			gotoxy(0, 0);
-			printf("POINTS: %d", points);
+			printf("                                     ");
 			gotoxy(2, 7);
 			printf("FLAPPY PELUCHITO");
 			gotoxy(3, 9);
@@ -165,6 +164,11 @@ void draw()
 			break;
 		case GAME:
 			animateBird();
+
+			gotoxy(0, 0);
+			printf("POINTS: %d    %d      %d        ", peluchito.y, time%5, peluchito.vY);
+			//delay(1000);
+
 			break;
 		case GAME_OVER:
 			gotoxy(4, 8);
@@ -212,25 +216,28 @@ void updateBird()
 		pressedA = 0;
 	}
 
-	if(peluchito.y < 144 ) 
+	if(peluchito.y < 160) 
 	{
-		if(time % 5 == 0) 
+		unsigned int tm = time % 5;
+		if(tm == 0) 
 		{
-			peluchito.vY++;
+			peluchito.vY += 1;
+			
 		}	
-		//hit the ceiling
-		if( (peluchito.y + peluchito.vY) < 10) {
+
+		if( (peluchito.y + peluchito.vY) < 24) {
 			//sound_you_die();
 			//trans_gameplay_gameover();
 			peluchito.vY = 0; // I just found out the ceiling doesn't kill you in the original
 		}
+		//hit the ceiling
 		peluchito.y += peluchito.vY;
 	}
 
 	moveBird(0,0);
 }
 
-void moveBird(unsigned int x, unsigned int y)
+void moveBird(int x, int y)
 {
 	peluchito.x += x;
 	peluchito.y += y;
@@ -333,8 +340,6 @@ void setLowerPlumb(struct LowerPlumb* lowerPlumb)
 void addPoints()
 {
 	points += 1;
-	gotoxy(0, 0);
-	printf("POINTS: %d                  ", points);
 }
 
 //Custom rand function.
