@@ -25,6 +25,7 @@ struct Peluchito peluchito;
 int iteration = 0;
 int pressedA = 0;
 int input;
+UBYTE musicOn = TRUE;
 
 void main(void)
 {
@@ -144,6 +145,14 @@ void start()
 void update()
 {
 	input = joypad();
+	if(input & J_SELECT)
+	{
+		if(musicOn == TRUE)
+			musicOn = FALSE;
+		else
+			musicOn = TRUE;
+	}	
+
 	switch(flag)
 	{
 		default:
@@ -157,7 +166,8 @@ void update()
 				if(time >= 0xFF)  
 					time = 0x00;
 
-				updateMusicGameplay();
+				if(musicOn == TRUE)
+					updateMusicGameplay();
 				updatePlayer();
 				break;
 			break;
