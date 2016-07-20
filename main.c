@@ -19,14 +19,6 @@ GAMEBOY SPECIFICATIONS:
 #include "header.h"
 #include "sound.c"
 
-struct LowerPlumb lowerPlumb;
-struct UpperPlumb upperPlumb;
-struct Peluchito peluchito;
-int iteration = 0;
-int pressedA = 0;
-int input;
-UBYTE musicOn = TRUE;
-
 void main(void)
 {
 	awake();
@@ -83,16 +75,15 @@ void awake()
 	set_sprite_tile(11, 1);
 	set_sprite_tile(12, 2);
 	set_sprite_tile(13, 3);
-	set_sprite_tile(14, 3);
-	set_sprite_tile(15, 3);
+	
 
 	/*Upper Plumb */
-	set_sprite_tile(20, 0);
-	set_sprite_tile(21, 1);
-	set_sprite_tile(22, 2);
-	set_sprite_tile(23, 3);
-	set_sprite_tile(24, 3);
-	set_sprite_tile(25, 3);
+	set_sprite_tile(20, 8);
+	set_sprite_tile(21, 9);
+	set_sprite_tile(22, 10);
+	set_sprite_tile(23, 11);
+
+	initPipes();
 	SHOW_SPRITES;
 
 	flag = SPLASH_SCREEN;
@@ -112,28 +103,27 @@ void start()
 	lowerPlumb.width = 16;
 	lowerPlumb.vX = -1;
 	lowerPlumb.vY = 0;
-	lowerPlumb.height = SCREEN_DIMENSION;
+	lowerPlumb.height = 0;
 
 	upperPlumb.x = SCREEN_DIMENSION;
 	upperPlumb.y = 0;
 	upperPlumb.width = 16;
 	upperPlumb.vX = -1;
 	upperPlumb.vY = 0;
-	upperPlumb.height = SCREEN_DIMENSION;
+	upperPlumb.height = 0;
 
 	initRandomizer();
 
-	iteration 			= 0;
-	points 				= 0;
-	time 				= 0x00;
-	m_clock 			= 0;
-	falling 			= 0;
-	timeJumping 		= 0;
-	flag 				= GAME;
-	leftPlumbSprite 	= SCREEN_DIMENSION;
-	rightPlumbSprite 	= SCREEN_DIMENSION + SPACE_TILE;
-	isFirstTime 		= TRUE;
-	hasPassedThePlumb 	= FALSE;
+	points = 0;
+	time = 0x00;
+	painted = 0;
+	isFirstTime = TRUE;
+	hasPassedThePlumb = FALSE;
+	firstJumpDone = FALSE;
+	flag = GAME;
+
+	gotoxy(0, 0);
+	printf("POINTS: %d         ", upperPlumb.y);
 
 	gotoxy(2, 7);
 	printf("                                                                ");
@@ -157,25 +147,26 @@ void update()
 	{
 		default:
 		case SPLASH_SCREEN:	
-			updateMusicMenu(); //Play the music.
+			if(musicOn)
+				updateMusicMenu(); //Play the music.
 			if(input & J_START)
 				start();
 			break;
 		case GAME:
+				updatePlayer();
+				//firstJumpDone = TRUE;
+				updatePlumbs();
+
 				time++;
 				if(time >= 0xFF)  
 					time = 0x00;
-
-				if(musicOn == TRUE)
+				if(musicOn)
 					updateMusicGameplay();
-				updatePlayer();
 				break;
 			break;
 		case GAME_OVER:
 			if(input & J_START)
-			{
-				start();
-			}	
+				start();	
 			break;
 	}
 }
@@ -195,11 +186,9 @@ void draw()
 			break;
 		case GAME:
 			animatePlayer();
-
-			gotoxy(0, 0);
-			printf("POINTS: %d         ", points);
-			//delay(1000);
-
+			paintPlumbs();
+			
+			
 			break;
 		case GAME_OVER:
 			gotoxy(4, 8);
@@ -232,11 +221,16 @@ void initRandomizer()
 }
 
 void updatePlayer()
-{
-	/*gotoxy(0,1);
-	printf("vY -> %d       \nY -> %d         ", peluchito.vY, peluchito.y);*/
+{	
+	
+
 	if((input & J_A) && (pressedA == 0)) 
 	{
+		if(!firstJumpDone)
+		{
+			firstJumpDone = TRUE;
+			return;
+		}	
 		peluchito.vY = -4;
 		//sound_flap();
 		pressedA = 1;
@@ -250,14 +244,17 @@ void updatePlayer()
 
 	if(peluchito.y < (SCREEN_DIMENSION - peluchito.height)) 
 	{
-		UBYTE tm = time % 0x05;
-		peluchito.vY += tm < 1;
-		
-		
-		if((peluchito.y + peluchito.vY) < 24) {
-			//sound_you_die();
-			//trans_gameplay_gameover();
-			peluchito.vY = 0; // I just found out the ceiling doesn't kill you in the original
+		if(firstJumpDone)
+		{
+			UBYTE tm = time % 0x05;
+			peluchito.vY += tm < 1;
+			
+			
+			if((peluchito.y + peluchito.vY) < SPACE_POINTS_BAR) {
+				//sound_you_die();
+				//trans_gameplay_gameover();
+				peluchito.vY = 0; // I just found out the ceiling doesn't kill you in the original
+			}
 		}
 
 		//hit the ceiling
@@ -271,7 +268,35 @@ void updatePlayer()
 		flag = GAME_OVER;
 	}
 
+	if(collisionCheck())
+	{
+		peluchito.vY = 0;
+		peluchito.vX = 0;
+		peluchito.y = SCREEN_DIMENSION - peluchito.height;
+		flag = GAME_OVER;
+	}
+	else
+	{
+		addPoints();
+	}
+
 	moveBird(peluchito.vX,peluchito.vY);
+}
+
+void initPipes()
+{
+	int i;
+	for (i = 0; i < 20; i++)
+	{
+		if(i % 2 == 0)
+		{
+			set_sprite_tile(i + 30, 4);
+		}
+		else
+		{
+			set_sprite_tile(i + 30, 5);
+		}
+	}
 }
 
 void moveBird(int x, int y)
@@ -301,208 +326,115 @@ void animatePlayer()
 		set_sprite_tile(2, 14);
 		set_sprite_tile(3, 15);
 	}
-	/*switch(iter)
-	{
-		case 0:
-			set_sprite_tile(2, 4);
-			move_sprite(2, xBirdLow, peluchito.height);
-			set_sprite_tile(3, 5);
-			move_sprite(3, peluchito.x, peluchito.height);
-			break;
-		case 1:
-			set_sprite_tile(2, 2);
-			move_sprite(2, xBirdLow, yTailBird);
-			set_sprite_tile(3, 3);
-			move_sprite(3, xBirdLow, yBird);
-			break;
-		case 2:
-			set_sprite_tile(2, 4);
-			move_sprite(2, xBirdLow, yTailBird);
-			set_sprite_tile(3, 5);
-			move_sprite(3, xBirdLow, yBird);
-			break;
-		default:
-			set_sprite_tile(2, 6);
-			move_sprite(2, xBirdLow, yTailBird);
-			set_sprite_tile(3, 7);
-			move_sprite(3, xBirdLow, yBird);
-			break;	
-	}*/
 }
 
-/*void jumpBird()
+void updatePlumbs()
 {
-	int vY;
-	if(falling > 0)
+	if(firstJumpDone)
 	{
-		int pad = joypad();
-		if(pad & J_A)
-			falling = -1 * GRAVITY;
+
+		if(isFirstTime || lowerPlumb.x <= -16 || upperPlumb.x <= -16)
+			resetPlumbs();
 		
+		movePlumbs(lowerPlumb.vX, lowerPlumb.vY);
 	}
-
-	vY = GRAVITY * falling;
-
-	if(yTailBird + vY < SCREEN_DIMENSION && yBird + vY > 32)
-	{
-		yTailBird += vY;
-		yBird += vY;
-	}
-
-	if(yTailBird + SPACE_TILE + vY >= SCREEN_DIMENSION)
-		flag = GAME_OVER;
-	if(m_clock == 4)
-		falling ++;
-	if(falling == 0)
-		falling ++;
-	if(falling >= MAX_FALL_VELOCITY)		
-		falling = MAX_FALL_VELOCITY;
-
 }
 
-void setLowerPlumb(struct LowerPlumb* lowerPlumb)
+void resetPlumbs()
 {
-	if(painted == 0)
+	
+	safeZone = random(SPACE_POINTS_BAR + SPACE_TILE, SCREEN_DIMENSION - SPACE_TILE - SAFE_ZONE_SPACE);
+	
+	upperPlumb.x = SCREEN_DIMENSION;
+	upperPlumb.y = safeZone;
+
+	lowerPlumb.x = SCREEN_DIMENSION;
+	lowerPlumb.y = safeZone + SAFE_ZONE_SPACE;
+
+	isFirstTime = FALSE;
+
+	//addPoints();
+}
+
+void paintPlumbs()
+{
+	if(firstJumpDone)
 	{
-		if(lowerPlumb->x == 0)
-			lowerPlumb->x = SCREEN_DIMENSION;
-		if(lowerPlumb->x == SCREEN_DIMENSION)
-			lowerPlumb->height = randomize();
-		if(lowerPlumb->height >= SCREEN_DIMENSION)
-			lowerPlumb->height = 82;
-		else if(lowerPlumb->height <= 0)
-			lowerPlumb->height = 40;
-		paintRectangle(lowerPlumb->height);
-		painted = 1;
+		
+		unsigned int i;
+		unsigned int cont = 30;
+		unsigned int upperBarPos = upperPlumb.y - SPACE_TILE;
+		unsigned int lowerBarPos = lowerPlumb.y;
+
+		
+		move_sprite(20, upperPlumb.x, upperPlumb.y - 8);
+		move_sprite(21, upperPlumb.x, upperPlumb.y);
+		move_sprite(22, upperPlumb.x + 8, upperPlumb.y - 8);
+		move_sprite(23, upperPlumb.x + 8, upperPlumb.y);
+		
+		move_sprite(10, lowerPlumb.x, lowerPlumb.y - 8);
+		move_sprite(11, lowerPlumb.x, lowerPlumb.y);
+		move_sprite(12, lowerPlumb.x + 8, lowerPlumb.y - 8);
+		move_sprite(13, lowerPlumb.x + 8, lowerPlumb.y);
+		
+		
+
+
+		for (i = upperBarPos - 8; i >= SPACE_POINTS_BAR; i -= SPACE_TILE)
+		{
+				//gotoxy(0, 0);
+				//printf("POINTS: %d  %d       ", cont, i);
+				move_sprite(cont, upperPlumb.x, i);
+				cont++;
+				move_sprite(cont, upperPlumb.x + SPACE_TILE, i);
+				cont++;
+				//delay(1000);
+		}
+
+		for(i = lowerBarPos + 8; i <= SCREEN_DIMENSION; i += SPACE_TILE)
+		{
+			move_sprite(cont, upperPlumb.x, i);
+				cont++;
+				move_sprite(cont, upperPlumb.x + SPACE_TILE, i);
+				cont++;
+		}
+
+
+
 	}
 
-	movePlumb(lowerPlumb->height);
-}*/
+}
 
 void addPoints()
 {
 	points += 1;
-}
-
-//Custom rand function.
-unsigned int randomize()
-{
-	
-	return positions[time % 10];
+	/*gotoxy(0, 0);
+	printf("POINTS: %d         ", points);*/
 }
 
 unsigned int random(unsigned int min, unsigned int max)
 {
 	return rand() % (max + 1 - min) + min;
 }
-/*
-void paintRectangle(int safeZone)
+
+void movePlumbs(int x, int y)
 {
-	int i;
-	int cont = 4;
-	if(isFirstTime == 1)
-	{
-		isFirstTime = 0;
-		for(i = SPACE_POINTS_BAR; i <= safeZone; i += SPACE_TILE)
-		{
-			set_sprite_tile(cont, 8);
-			move_sprite(cont, SCREEN_DIMENSION, i);
-			cont ++;
-			set_sprite_tile(cont, 8);
-			move_sprite(cont, SCREEN_DIMENSION + SPACE_TILE, i);
-			cont ++;
-		}
-		for(i = safeZone + SAFE_ZONE_SPACE; i <= SCREEN_DIMENSION; i += SPACE_TILE)
-		{
-			set_sprite_tile(cont, 8);
-			move_sprite(cont, SCREEN_DIMENSION, i);
-			cont ++;
-			set_sprite_tile(cont, 8);
-			move_sprite(cont, SCREEN_DIMENSION + SPACE_TILE, i);
-			cont ++;
-		}
-	}
-	else
-	{
-		for(i = SPACE_POINTS_BAR; i <= safeZone; i += SPACE_TILE)
-		{
-			move_sprite(cont, SCREEN_DIMENSION, i);
-			cont ++;
-			move_sprite(cont, SCREEN_DIMENSION + SPACE_TILE, i);
-			cont ++;
-		}
-		for(i = safeZone + SAFE_ZONE_SPACE; i <= SCREEN_DIMENSION; i += SPACE_TILE)
-		{
-			move_sprite(cont, SCREEN_DIMENSION, i);
-			cont ++;
-			move_sprite(cont, SCREEN_DIMENSION + SPACE_TILE, i);
-			cont ++;
-		}
-	}
-}
-
-void movePlumb(int safeZone)
-{
-	int i;
-	int cont = 4;
-
-	collision(safeZone);
-
-	leftPlumbSprite -= BIRD_VELOCITY;
-	rightPlumbSprite -= BIRD_VELOCITY;
+	lowerPlumb.x += x;
+	lowerPlumb.y += y;
 	
-	for(i = SPACE_POINTS_BAR; i <= safeZone; i += SPACE_TILE)
-	{
-		move_sprite(cont, leftPlumbSprite, i);
-		cont ++;
-		move_sprite(cont, rightPlumbSprite, i);
-		cont ++;
-	}
-	for(i = safeZone + SAFE_ZONE_SPACE; i <= SCREEN_DIMENSION; i += SPACE_TILE)
-	{
-		move_sprite(cont, leftPlumbSprite, i);
-		cont ++;
-		move_sprite(cont, rightPlumbSprite, i);
-		cont ++;
-	}
-
-	if(leftPlumbSprite < 0)
-	{
-		leftPlumbSprite = SCREEN_DIMENSION;
-		rightPlumbSprite = SCREEN_DIMENSION + SPACE_TILE;
-		painted = 0;
-		hasPassedThePlumb = 0;
-	}	
+	upperPlumb.x += x;
+	upperPlumb.y += y;
 }
 
-void collision(int safeZone)
+int collisionCheck()
 {
-	if(xBird == leftPlumbSprite - SPACE_TILE)
+	if(peluchito.x + 16 >= upperPlumb.x && peluchito.x <= upperPlumb.x + 16)
 	{
-		if(yBird > safeZone && yTailBird < safeZone + SAFE_ZONE_SPACE - SPACE_TILE)
-			return;
-		else
-			flag = GAME_OVER;
-		
-	}
-	if (xBird > leftPlumbSprite - SPACE_TILE)
-	{
-		if(yBird < safeZone && yTailBird > safeZone + SAFE_ZONE_SPACE - SPACE_TILE)
-			flag = GAME_OVER;
-		else
+		if((peluchito.y + SPACE_TILE) > lowerPlumb.y || (peluchito.y < upperPlumb.y + SPACE_TILE))
 		{
-			if(hasPassedThePlumb == 0)
-				addPoints();
+			return TRUE;
 		}
-		hasPassedThePlumb = 1;
 	}
-}
-
-int collisionCheck(UINT8 x1, UINT8 y1, UINT8 w1, UINT8 h1, UINT8 x2, UINT8 y2, UINT8 w2, UINT8 h2)
-{
-	if(((x1 < (x2+w2)) && ((x1+w1) > x2) && (y1 < (h2+y2)) && ((y1+h1) > y2)))
-		return TRUE;
 
 	return FALSE;
 }
-*/

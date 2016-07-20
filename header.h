@@ -20,6 +20,7 @@ GAMEBOY SPECIFICATIONS:
 #include <gb/hardware.h> // INCLUDE HANDY HARDWARE REFERENCES
 #include <gb/sample.h>
 #include <gb/console.h>
+#include <gb/drawing.h>
 #include <rand.h>// INCLUDE RANDOM FUNCTIONS
 #include <stdio.h>
 
@@ -31,7 +32,7 @@ GAMEBOY SPECIFICATIONS:
 #define SPACE_TILE			 	8
 #define MAX_FALL_VELOCITY	 	4
 #define SPACE_POINTS_BAR		24
-#define SAFE_ZONE_SPACE			40
+#define SAFE_ZONE_SPACE			76
 #define SCREEN_DIMENSION		160
 
 typedef enum 
@@ -41,28 +42,28 @@ typedef enum
 	GAME = 1
 } GameStatus;
 
-int xBird 				= 		64;  
-int xBirdLow 			= 		xBird - SPACE_TILE;  
-int yBird 				= 		78;
-int yTailBird 			= 		yBird - SPACE_TILE;
-int points 				= 		0;
-UBYTE time 		= 		0x00;
-int m_clock 			= 		0;
-int falling 			= 		0;
-int timeJumping 		= 		0;
-GameStatus flag 		= 		SPLASH_SCREEN;
-int leftPlumbSprite 	= 		SCREEN_DIMENSION;
-int rightPlumbSprite 	= 		SCREEN_DIMENSION + SPACE_TILE;
-int painted 			= 		0;
-int isFirstTime 		= 		1;
-int hasPassedThePlumb 	= 		0;
+unsigned int points = 0;
+UBYTE time = 0x00;
+GameStatus flag = SPLASH_SCREEN;
+UBYTE painted = 0;
+UBYTE isFirstTime = TRUE;
+UBYTE hasPassedThePlumb = 0;
+UBYTE iteration = 0;
+int pressedA = 0;
+int input;
+UBYTE musicOn = TRUE;
+UBYTE firstJumpDone = FALSE;
 
-int positions[10] 		= 		{72, 80, 124, 32, 64, 112, 24, 48, 32, 96};
+struct LowerPlumb lowerPlumb;
+struct UpperPlumb upperPlumb;
+struct Peluchito peluchito;
+
+unsigned int safeZone = 0;
 
 struct LowerPlumb
 {
-	int x;
-	int y;
+	long x;
+	long y;
 	unsigned int height;
 	unsigned int width;
 
@@ -72,8 +73,8 @@ struct LowerPlumb
 
 struct UpperPlumb
 {
-	int x;
-	int y;
+	long x;
+	long y;
 	unsigned int height;
 	unsigned int width;
 
@@ -83,8 +84,8 @@ struct UpperPlumb
 
 struct Peluchito
 {
-	int x;
-	int y;
+	long x;
+	long y;
 	unsigned int height;
 	unsigned int width;
 
@@ -106,15 +107,15 @@ void soundCleanNoise();
 
 void animatePlayer();
 void updatePlayer();
-void jumpBird();
 void moveBird(int x, int y);
-void setLowerPlumb(struct LowerPlumb* plumb);
-void setUpperPlumb(struct UpperPlumb* plumb);
 void addPoints();
-void collision(int safeZone);
 void initRandomizer();
-unsigned int randomize();
+void initPipes();
 unsigned int random(unsigned int min, unsigned int max);
-void paintRectangle(int safeZone);
-void movePlumb(int safeZone);
-int collisionCheck(UINT8 x1, UINT8 y1, UINT8 w1, UINT8 h1, UINT8 x2, UINT8 y2, UINT8 w2, UINT8 h2);
+void paintPlumbs();
+void movePlumbs(int x, int j);
+void updatePlumbs();
+void resetPlumbs();
+
+void collision(int safeZone);
+int collisionCheck();
