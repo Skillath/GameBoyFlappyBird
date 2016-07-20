@@ -165,6 +165,8 @@ void update()
 				break;
 			break;
 		case GAME_OVER:
+			/*if(musicOn)
+				updateMusicMenu();*/
 			if(input & J_START)
 				start();	
 			break;
@@ -234,7 +236,7 @@ void updatePlayer()
 		peluchito.vY = -4;
 		//sound_flap();
 		pressedA = 1;
-
+		soundFlap();
 		
 	} 
 	else if((input & J_A) == 0) 
@@ -262,6 +264,7 @@ void updatePlayer()
 	}
 	else
 	{
+		soundYouDie();
 		peluchito.vY = 0;
 		peluchito.vX = 0;
 		peluchito.y = SCREEN_DIMENSION - peluchito.height;
@@ -270,14 +273,11 @@ void updatePlayer()
 
 	if(collisionCheck())
 	{
+		soundYouDie();
 		peluchito.vY = 0;
 		peluchito.vX = 0;
 		peluchito.y = SCREEN_DIMENSION - peluchito.height;
 		flag = GAME_OVER;
-	}
-	else
-	{
-		addPoints();
 	}
 
 	moveBird(peluchito.vX,peluchito.vY);
@@ -352,7 +352,7 @@ void resetPlumbs()
 	lowerPlumb.y = safeZone + SAFE_ZONE_SPACE;
 
 	isFirstTime = FALSE;
-
+	hasPassedBy = FALSE;
 	//addPoints();
 }
 
@@ -408,8 +408,8 @@ void paintPlumbs()
 void addPoints()
 {
 	points += 1;
-	/*gotoxy(0, 0);
-	printf("POINTS: %d         ", points);*/
+	gotoxy(0, 0);
+	printf("POINTS: %d         ", points);
 }
 
 unsigned int random(unsigned int min, unsigned int max)
@@ -433,6 +433,12 @@ int collisionCheck()
 		if((peluchito.y + SPACE_TILE) > lowerPlumb.y || (peluchito.y < upperPlumb.y + SPACE_TILE))
 		{
 			return TRUE;
+		}
+		else if(!hasPassedBy)
+		{
+			hasPassedBy = TRUE;
+			soundPipe();
+			addPoints();
 		}
 	}
 

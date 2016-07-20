@@ -53,6 +53,7 @@ int pressedA = 0;
 int input;
 UBYTE musicOn = TRUE;
 UBYTE firstJumpDone = FALSE;
+UBYTE hasPassedBy = FALSE;
 
 struct LowerPlumb lowerPlumb;
 struct UpperPlumb upperPlumb;

@@ -61,7 +61,7 @@ void playMusicGameplay(){
 void updateMusicMenu(){
     if (timerCounter >= 7){
             timerCounter = 0;
-            currentBeat = currentBeat == 53 ? 0 : currentBeat+1;
+            currentBeat = currentBeat == 101 ? 0 : currentBeat+1;
             playMusicMenu();
     }
     timerCounter++;
@@ -79,7 +79,7 @@ void updateMusicGameover(){
 void updateMusicGameplay(){
     if (timerCounter >= 14 - moreSpeed){
             timerCounter = 0;
-            if (currentBeat < 53)
+            if (currentBeat < 101)
             {
                 currentBeat++;
             }
@@ -110,4 +110,41 @@ void updateMusicGameplay(){
             muteChannel4 = 0;
         }
     }
+}
+
+void soundFlap()
+{
+	NR10_REG = 0x34U; // 4th bit indicates if freq increases or decreases
+			  // bits 5th-7th indicate sweep delay
+	NR11_REG = 0x80U;
+	NR12_REG = 0xF0U;
+	NR13_REG = 0x0AU; //lowest 8 frequency bits
+	NR14_REG = 0xC6U; // first 3 bits are the 3 highest bits of freq
+	NR51_REG |= 0x11;
+}
+
+void soundYouDie()
+{
+    NR41_REG = 0x00;//0x1FU;
+    NR42_REG = 0xE1;//0xF7U;
+    NR43_REG = 0x22;//0x24U;
+    NR44_REG = 0xC3;//0x80U;
+    NR51_REG = 0x88U;
+}
+
+void soundPipe()
+{
+
+    NR21_REG = 0x80U;
+    NR22_REG = 0x73U;
+    NR23_REG = 0x9EU;
+    NR24_REG = 0xC7U;
+    NR51_REG |= 0x22;	// play frst note
+    NR21_REG = 0xAEU;
+    NR22_REG = 0x68U;
+    NR23_REG = 0xDBU;
+    NR24_REG = 0xC6U;
+    NR51_REG |= 0x22;
+
+
 }

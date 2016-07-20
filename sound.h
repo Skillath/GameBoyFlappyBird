@@ -18,4 +18,8 @@ void updateMusicMenu();
 void updateMusicGameover();
 void updateMusicGameplay();
 
+void soundFlap();
+void soundYouDie();
+void soundPipe();
+
 #endif
